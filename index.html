@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>샌드위치 만들기</title>
+    <style>
+        :root {
+            --subway-green: #008938;
+            --subway-yellow: #FFC72C;
+            --subway-dark-green: #005F24;
+            --bg-color: #F3F9F4;
+            --text-color: #222222;
+            --border-color: #E2E8F0;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            width: 1200px;
+            background: #ffffff;
+            border: 4px solid var(--subway-green);
+            border-radius: 24px;
+            box-shadow: 0 12px 0px #004d1c, 0 15px 30px rgba(0,0,0,0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Subway Header Banner */
+        .subway-header {
+            background-color: var(--subway-green);
+            padding: 15px 25px;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid var(--subway-yellow);
+        }
+
+        .subway-header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subway-header h1 span {
+            color: var(--subway-yellow);
+        }
+
+        .score-board {
+            background-color: var(--subway-dark-green);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 14px;
+            border: 2px solid var(--subway-yellow);
+        }
+
+        /* Main Workspace Splitting (3단 구성) */
+        .game-body {
+            display: flex;
+            min-height: 580px;
+        }
+
+        /* Left Panel (손님 영역) */
+        .left-panel {
+            width: 25%;
+            background-color: #F9FFF9;
+            padding: 25px;
+            border-right: 3px dashed var(--subway-green);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 20px;
+        }
+
+        .customer-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .avatar-svg {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 4px solid var(--subway-green);
+            background: #FFFCEB;
+            box-shadow: 0 6px 0px rgba(0,0,0,0.08);
+        }
+
+        .speech-bubble {
+            background: #ffffff;
+            border: 3px solid var(--subway-green);
+            border-radius: 20px;
+            padding: 16px 20px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 4px 0px #E2E8F0;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 15px 15px;
+            border-style: solid;
+            border-color: transparent transparent var(--subway-green);
+            display: block;
+            width: 0;
+        }
+
+        .customer-dialog {
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.5;
+            color: #111;
+        }
+
+        /* Middle Panel (재료 선택 영역) */
+        .middle-panel {
+            width: 45%;
+            padding: 25px;
+            border-right: 3px dashed var(--subway-green);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .kitchen-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .section-box {
+            background-color: #fcfcfc;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 12px 16px;
+        }
+
+        .section-header {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--subway-green);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-header::before {
+            content: '●';
+            color: var(--subway-yellow);
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .recipe-btn {
+            background: #ffffff;
+            border: 2px solid var(--border-color);
+            border-bottom: 5px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 8px;
+            font-size: 12.5px;
+            font-weight: bold;
+            color: #4A5568;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .recipe-btn .btn-emoji {
+            font-size: 20px;
+        }
+
+        .recipe-btn:hover {
+            background-color: #F7FAFC;
+        }
+
+        .recipe-btn.selected {
+            background-color: #FFFDF0;
+            border-color: var(--subway-yellow);
+            border-bottom: 5px solid #E5B21A;
+            color: #000;
+        }
+
+        .recipe-btn:active {
+            margin-top: 3px;
+            border-bottom-width: 2px;
+        }
+
+        /* Right Panel (새로운 창 - 계산 및 제작 영역) */
+        .right-panel {
+            width: 30%;
+            padding: 25px;
+            background-color: #FAFBFD;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .target-hint-card {
+            background-color: #FFFEEA;
+            border: 3px solid var(--subway-yellow);
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 4px 0px #E5B21A;
+        }
+
+        .target-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: #C18F00;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .target-formula {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .target-result-num {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--subway-green);
+        }
+
+        /* Plate Area & Sandwich Visualizer */
+        .plate-area {
+            background-color: #EBF8FF;
+            border: 3px dashed #BEE3F8;
+            border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            min-height: 250px;
+            position: relative;
+        }
+
+        .plate-title {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #2B6CB0;
+        }
+
+        .sandwich-display {
+            width: 90%;
+            height: 200px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .sandwich-layer {
+            width: 100%;
+            height: 20px;
+            border-radius: 10px;
+            text-align: center;
+            line-height: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            position: absolute;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Action Buttons */
+        .footer-actions {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        .serve-btn {
+            background-color: var(--subway-green);
+            color: white;
+            box-shadow: 0 5px 0px var(--subway-dark-green);
+        }
+
+        .serve-btn:hover {
+            background-color: #009E41;
+        }
+
+        .reset-btn {
+            background-color: #FF4B4B;
+            color: white;
+            box-shadow: 0 5px 0px #C0392B;
+        }
+
+        .reset-btn:hover {
+            background-color: #FF5E5E;
+        }
+
+        /* Modal Popup */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            border: 4px solid var(--subway-yellow);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--subway-green);
+            margin-bottom: 10px;
+        }
+
+        .modal-btn {
+            margin-top: 15px;
+            padding: 10px 24px;
+            background-color: var(--subway-green);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="subway-header">
+        <h1>🥪 <span>샌드위치 만들기</span></h1>
+        <div class="score-board" id="score-text">나의 가게 평점: ⭐️ 0점</div>
+    </div>
+
+    <div class="game-body">
+        <!-- 1. 좌측 창: 손님 정보 및 아바타 -->
+        <div class="left-panel">
+            <div class="customer-area">
+                <div id="avatar-container"></div>
+                <div class="speech-bubble">
+                    <div class="customer-dialog" id="cust-dialog">안녕하세요! 주문에 맞춰 경우의 수를 계산해 샌드위치를 완성해 보세요!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 중간 창: 재료 선택판 -->
+        <div class="middle-panel">
+            <div class="kitchen-sections">
+                <!-- Breads -->
+                <div class="section-box">
+                    <div class="section-header">브레드 선택</div>
+                    <div class="button-grid" id="bread-container"></div>
+                </div>
+
+                <!-- Cheeses -->
+                <div class="section-box">
+                    <div class="section-header">치즈 선택</div>
+                    <div class="button-grid" id="cheese-container"></div>
+                </div>
+
+                <!-- Veggies -->
+                <div class="section-box">
+                    <div class="section-header">야채 선택</div>
+                    <div class="button-grid" id="veggie-container"></div>
+                </div>
+
+                <!-- Sauces -->
+                <div class="section-box">
+                    <div class="section-header">소스 선택</div>
+                    <div class="button-grid" id="sauce-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 우측 새로운 창: 경우의 수 & 플레이트 & 동작 버튼 -->
+        <div class="right-panel">
+            <!-- [맨 위] 경우의 수 칸 -->
+            <div class="target-hint-card">
+                <div class="target-title">이 조건으로 가능한 총 레시피 경우의 수</div>
+                <div class="target-formula" id="math-formula">3C1 × 3C1 × 5C2 × 5C1</div>
+                <div class="target-result-num" id="math-result">450가지 조합</div>
+            </div>
+
+            <!-- [가운데] 샌드위치 제작 플레이트 -->
+            <div class="plate-area">
+                <div class="plate-title">🍽️ 샌드위치 제작 플레이트</div>
+                <div class="sandwich-display" id="sandwich-plate">
+                    <div style="color: #A0AEC0; font-size: 13px;" id="empty-plate-text">재료를 선택하여 샌드위치를 쌓아보세요!</div>
+                </div>
+            </div>
+
+            <!-- [그 밑] 하단 액션 버튼 -->
+            <div class="footer-actions">
+                <button class="action-btn reset-btn" onclick="resetSelections()">🗑️ 쟁반 비우기</button>
+                <button class="action-btn serve-btn" onclick="submitSandwich()">🛎️ 주문 완성!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+    <div class="modal-card">
+        <div class="modal-title" id="modal-title">결과</div>
+        <p id="modal-desc">피드백 내용</p>
+        <button class="modal-btn" onclick="closeModal()">다음 손님 받기</button>
+    </div>
+</div>
+
+<script>
+    // 개별 재료별 상세 커스텀 색상 및 이모지 매핑 데이터
+    const ingredientStyles = {
+        // Breads
+        "화이트 브레드": { emoji: "🍞", bg: "#F5DEB3", border: "#D2B48C", color: "#5C3A21" },
+        "하티 브레드": { emoji: "🥖", bg: "#DEB887", border: "#CD853F", color: "#4A2E1B" },
+        "플랫브레드": { emoji: "🫓", bg: "#FFE4C4", border: "#F5F5DC", color: "#5C3A21" },
+        
+        // Cheeses
+        "아메리칸 치즈": { emoji: "🧀", bg: "#FFD700", border: "#FFA500", color: "#4D2600" },
+        "슈레드 치즈": { emoji: "🧀", bg: "#FF8C00", border: "#FF4500", color: "#FFFFFF" },
+        "모차렐라 치즈": { emoji: "⚪", bg: "#F8F8FF", border: "#E6E6FA", color: "#333333" },
+        
+        // Veggies
+        "양상추": { emoji: "🥬", bg: "#7CFC00", border: "#228B22", color: "#FFFFFF" },
+        "토마토": { emoji: "🍅", bg: "#FF6347", border: "#D01C1C", color: "#FFFFFF" },
+        "오이": { emoji: "🥒", bg: "#98FB98", border: "#2E8B57", color: "#1E4620" },
+        "올리브": { emoji: "🫒", bg: "#2F4F4F", border: "#0F1F1F", color: "#FFFFFF" },
+        "할라피뇨": { emoji: "🌶️", bg: "#006400", border: "#004D00", color: "#FFFFFF" },
+        
+        // Sauces
+        "랜치 소스": { emoji: "🥛", bg: "#FFFDD0", border: "#F0E68C", color: "#555555" },
+        "스위트 어니언 소스": { emoji: "🧅", bg: "#DDBEE6", border: "#BA55D3", color: "#FFFFFF" },
+        "허니 머스타드 소스": { emoji: "🍯", bg: "#FFDB58", border: "#DAA520", color: "#442200" },
+        "핫 칠리 소스": { emoji: "🔥", bg: "#8B0000", border: "#5A0000", color: "#FFFFFF" },
+        "올리브 오일 소스": { emoji: "🍾", bg: "#E6F3E6", border: "#9ACD32", color: "#2E5B1A" }
+    };
+
+    const ingredientData = {
+        breads: ["화이트 브레드", "하티 브레드", "플랫브레드"],
+        cheeses: ["아메리칸 치즈", "슈레드 치즈", "모차렐라 치즈"],
+        veggies: ["양상추", "토마토", "오이", "올리브", "할라피뇨"],
+        sauces: ["랜치 소스", "스위트 어니언 소스", "허니 머스타드 소스", "핫 칠리 소스", "올리브 오일 소스"]
+    };
+
+    // 얼굴 색을 더 다양하고 다채로운 파스텔 톤으로 바꾼 기본 아바타 (6종)
+    const customerAvatars = [
+        `<svg class="avatar-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="#FFC5C5"/> <!-- 파스텔 핑크 로즈 -->
+            <circle cx="35" cy="45" r="4" fill="#333"/>
+            <circle cx="65" cy="45" r="4" fill="#333"/>
+            <path d="M40 65 Q50 75 60 65" stroke="#333" stroke-width="3" fill="none"/>
+        </svg>`,
+        `<svg class="avatar-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="#FFDCA9"/> <!-- 파스텔 피치 살구 -->
+            <circle cx="35" cy="45" r="4" fill="#333"/>
+            <circle cx="65" cy="45" r="4" fill="#333"/>
+            <path d="M42 60 Q50 68 58 60" stroke="#333" stroke-width="3" fill="none"/>
+        </svg>`,
+        `<svg class="avatar-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="#C1F0C8"/> <!-- 파스텔 애플 민트 -->
+            <circle cx="35" cy="45" r="4" fill="#333"/>
+            <circle cx="65" cy="45" r="4" fill="#333"/>
+            <path d="M40 62 L60 62" stroke="#333" stroke-width="3"/>
+        </svg>`,
+        `<svg class="avatar-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="#BCE6FF"/> <!-- 파스텔 하늘 스카이 -->
+            <circle cx="35" cy="45" r="4" fill="#333"/>
+            <circle cx="65" cy="45" r="4" fill="#333"/>
+            <path d="M43 65 Q50 55 57 65" stroke="#333" stroke-width="3" fill="none"/>
+        </svg>`,
+        `<svg class="avatar-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="#FFF5B8"/> <!-- 파스텔 레몬 바나나 -->
+            <circle cx="35" cy="45" r="4" fill="#333"/>
+            <circle cx="65" cy="45" r="4" fill="#333"/>
+            <path d="M40 65 Q50 72 60 65" stroke="#333" stroke-width="3" fill="none"/>
+        </svg>`,
+        `<svg class="avatar-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="#EAD5FF"/> <!-- 파스텔 라벤더 보라 -->
+            <circle cx="35" cy="45" r="4" fill="#333"/>
+            <circle cx="65" cy="45" r="4" fill="#333"/>
+            <path d="M41 60 Q50 70 59 60" stroke="#333" stroke-width="3" fill="none"/>
+        </svg>`
+    ];
+
+    const missions = [
+        {
+            dialog: "반가워요! 저는 빵 1개에 치즈 1개, 상큼한 야채는 딱 2개, 그리고 소스도 깔끔하게 딱 1종류만 넣어서 만든 베이직한 샌드위치가 먹고 싶어요!",
+            formula: "3C1 × 3C1 × 5C2 × 5C1",
+            total: "450가지 조합",
+            validator: (sel) => sel.breads.length === 1 && sel.cheeses.length === 1 && sel.veggies.length === 2 && sel.sauces.length === 1
+        },
+        {
+            dialog: "안녕~! 건강하게 채식주의자 스타일로 빵 1개에 치즈는 다 빼고, 신선한 야채는 골고루 3개나 얹어서 소스는 정확히 2개 섞어서 줄래?",
+            formula: "3C1 × 1 × 5C3 × 5C2",
+            total: "300가지 조합",
+            validator: (sel) => sel.breads.length === 1 && sel.cheeses.length === 0 && sel.veggies.length === 3 && sel.sauces.length === 2
+        },
+        {
+            dialog: "하이~! 치즈 매니아 등장! 빵은 하나 고르고, 치즈는 있는 종류 3가지 전부 듬뿍 넣어주구, 야채는 아삭하게 1개만, 소스는 고소한 랜치 소스 하나만 뿌려줘!",
+            formula: "3C1 × 1 × 5C1 × 1",
+            total: "15가지 조합",
+            validator: (sel) => sel.breads.length === 1 && sel.cheeses.length === 3 && sel.veggies.length === 1 && sel.sauces.length === 1 && sel.sauces.includes("랜치 소스")
+        },
+        {
+            dialog: "안녕하세요! 저는 배가 무지 고파서 빵 1개에 고소한 치즈 2종류를 깔고, 상큼한 야채 2종류에 매운 핫 칠리 소스를 포함해서 소스 총 2종류를 가득 채워주실 수 있나요?",
+            formula: "3C1 × 3C2 × 5C2 × 4C1",
+            total: "360가지 조합",
+            validator: (sel) => sel.breads.length === 1 && sel.cheeses.length === 2 && sel.veggies.length === 2 && sel.sauces.length === 2 && sel.sauces.includes("핫 칠리 소스")
+        }
+    ];
+
+    let currentMissionIndex = 0;
+    let score = 0;
+    let selected = { breads: [], cheeses: [], veggies: [], sauces: [] };
+
+    window.onload = function() {
+        renderGrids();
+        loadRandomMission();
+    };
+
+    function renderGrids() {
+        setupCategory("breads", "bread-container");
+        setupCategory("cheeses", "cheese-container");
+        setupCategory("veggies", "veggie-container");
+        setupCategory("sauces", "sauce-container");
+    }
+
+    function setupCategory(catKey, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        ingredientData[catKey].forEach(item => {
+            const btn = document.createElement("button");
+            btn.className = "recipe-btn";
+            
+            const itemStyle = ingredientStyles[item];
+            const emojiSpan = `<span class="btn-emoji">${itemStyle ? itemStyle.emoji : '🍕'}</span>`;
+            btn.innerHTML = `${emojiSpan}<span>${item}</span>`;
+            
+            btn.onclick = () => selectItem(catKey, item, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectItem(catKey, item, btn) {
+        const isSelected = selected[catKey].includes(item);
+        if (isSelected) {
+            selected[catKey] = selected[catKey].filter(val => val !== item);
+            btn.classList.remove("selected");
+        } else {
+            if (catKey === "breads") {
+                selected.breads = [item];
+                const container = document.getElementById("bread-container");
+                container.querySelectorAll(".recipe-btn").forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
+            } else {
+                selected[catKey].push(item);
+                btn.classList.add("selected");
+            }
+        }
+        updatePlate();
+    }
+
+    function resetSelections() {
+        selected = { breads: [], cheeses: [], veggies: [], sauces: [] };
+        document.querySelectorAll(".recipe-btn").forEach(btn => btn.classList.remove("selected"));
+        updatePlate();
+    }
+
+    function updatePlate() {
+        const plate = document.getElementById("sandwich-plate");
+        plate.innerHTML = "";
+        
+        let layers = [];
+
+        if (selected.breads.length > 0) {
+            const bName = selected.breads[0];
+            layers.push({ name: bName, style: ingredientStyles[bName] });
+        }
+
+        selected.cheeses.forEach(c => {
+            layers.push({ name: c, style: ingredientStyles[c] });
+        });
+        selected.veggies.forEach(v => {
+            layers.push({ name: v, style: ingredientStyles[v] });
+        });
+        selected.sauces.forEach(s => {
+            layers.push({ name: s, style: ingredientStyles[s] });
+        });
+
+        if (selected.breads.length > 0) {
+            const bName = selected.breads[0];
+            layers.push({ name: bName, style: ingredientStyles[bName] });
+        }
+
+        if (layers.length === 0) {
+            plate.innerHTML = `<div style="color: #A0AEC0; font-size: 13px;" id="empty-plate-text">재료를 선택하여 샌드위치를 쌓아보세요!</div>`;
+            return;
+        }
+
+        layers.forEach((layer, index) => {
+            const el = document.createElement("div");
+            el.className = `sandwich-layer`;
+            el.innerText = `${layer.style.emoji} ${layer.name}`;
+            
+            el.style.backgroundColor = layer.style.bg;
+            el.style.border = `2px solid ${layer.style.border}`;
+            el.style.color = layer.style.color;
+            
+            el.style.bottom = `${index * 16}px`;
+            plate.appendChild(el);
+        });
+    }
+
+    function loadRandomMission() {
+        currentMissionIndex = Math.floor(Math.random() * missions.length);
+        const current = missions[currentMissionIndex];
+        
+        const randomAvatarIndex = Math.floor(Math.random() * customerAvatars.length);
+        document.getElementById("avatar-container").innerHTML = customerAvatars[randomAvatarIndex];
+        
+        document.getElementById("cust-dialog").innerText = current.dialog;
+        document.getElementById("math-formula").innerText = current.formula;
+        document.getElementById("math-result").innerText = current.total;
+        
+        resetSelections();
+    }
+
+    function submitSandwich() {
+        const current = missions[currentMissionIndex];
+        const isSuccess = current.validator(selected);
+
+        if (isSuccess) {
+            score += 10;
+            document.getElementById("score-text").innerText = `나의 가게 평점: ⭐️ ${score}점`;
+            showModal("성공! PERFECT!", "와우! 완벽한 샌드위치 빌더군요! 손님이 비주얼과 구성 모두 대만족하고 가셨어요! 다음 미션도 도전해보세요.");
+        } else {
+            showModal("아쉬워요! 주문 오류", "손님이 요구한 수학적 개수나 최애 소스 옵션이 다릅니다. 주문 조건과 식판에 올려진 레시피를 다시 확인해주세요!");
+        }
+    }
+
+    function showModal(title, desc) {
+        document.getElementById("modal-title").innerText = title;
+        document.getElementById("modal-desc").innerText = desc;
+        document.getElementById("modal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("modal").style.display = "none";
+        if (document.getElementById("modal-title").innerText.includes("성공")) {
+            loadRandomMission();
+        }
+    }
+</script>
+</body>
+</html>
